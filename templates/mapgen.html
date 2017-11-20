@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>D3 Hello World</title>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+  </head>
+  <body>
+    <script type="text/javascript">
+
+var decendios = [1,2,3];
+window.onload = function(e) {
+  for(dec in decendios) {
+    var opt = document.createElement("option");
+    opt.value = decendios[dec];
+    opt.innerHTML = decendios[dec];
+    select = document.forms["myForm"]["decendio"];
+    select.appendChild(opt);
+  }
+}
+
+var centroide_lat_ref = -22.401,
+    centroide_long_ref = -48.691;
+
+var centroide_lat = '{{ centroide_lat }}',
+    centroide_long = '{{ centroide_long }}';
+
+var width = 760,
+    height = 660;
+
+var translate_lat_offset = (centroide_lat - centroide_lat_ref)*110.323 + 3775,
+    translate_long_offset = (centroide_long - centroide_long_ref)*(-45.6) - 1300;
+
+var projection = d3.geo.mercator()
+    .scale(4000)
+    .translate([translate_lat_offset, translate_long_offset])
+
+var path = d3.geo.path()
+    .projection(projection);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .style("border", "1px solid black");
+
+var tooltip = d3.select("body")
+    .append("div")
+    .style("position", "absolute")
+    .style("z-index", "10")
+    .style("visibility", "hidden")
+    .style("background", "#e6eeee")
+    .text("a simple tooltip");
+
+d3.csv("{{ arquivo_csv }}",function(csv) {
+
+svg.selectAll("rect")
+    .data(csv)
+    .enter()
+    .append("rect")
+    .attr('width', 8)
+    .attr('height', 8)
+    .attr("transform", function(d) {
+      return "translate(" + projection([d.longitude,d.latitude]) + ")";
+    })
+    .style("fill", function (d) {
+		if(d.dec1 < 45)
+			return "#db1c2a";//vermelho
+		else if(d.dec1 <55)
+			return "#f0ff00";//amarelo
+		else
+      return "#0e9401";//verde
+	})
+  .on("mouseover", function(d){var text = "latitude:" + d.latitude + " " + "longitude:" + d.longitude + " " + "etretm:" + d.dec1; tooltip.text(text); return tooltip.style("visibility", "visible");})
+  .on("mousemove", function(){return tooltip.style("top", (d3.event.pageY-10)+"px").style("left",(d3.event.pageX+10)+"px");})
+  .on("mouseout", function(){return tooltip.style("visibility", "hidden")});
+
+  d3.json("BRA_adm1.json", function(json) {
+                  svg.selectAll("path")
+                     .data(json.features)
+                     .enter()
+                     .append("path")
+                     .attr("d", path)
+  		               .style("stroke",function (d) {
+                        if(d.properties.HASC_1 == "{{ estado }}") {
+                            return "black";
+                        }
+                        else
+                            return "none";
+                        })
+                    .style("fill", "none");
+  });
+
+});
+
+function carrega_decendio(decendio){
+  d3.csv("{{ arquivo_csv }}",function(csv) {
+
+  svg.selectAll("rect")
+      .data(csv)
+      .style("fill", function (d) {
+
+     if(decendio=="1")
+     {
+       if(d.dec1 < 45)
+         return "#db1c2a";//vermelho
+       else if(d.dec1 <55)
+         return "#f0ff00";//amarelo
+       else
+        return "#0e9401";//verde
+      }
+      else if(decendio=="2")
+      {
+        if(d.dec2 < 45)
+          return "#db1c2a";//vermelho
+        else if(d.dec2 <55)
+          return "#f0ff00";//amarelo
+        else
+         return "#0e9401";//verde
+       }
+       else if(decendio=="3")
+       {
+         if(d.dec3 < 45)
+           return "#db1c2a";//vermelho
+         else if(d.dec3 <55)
+           return "#f0ff00";//amarelo
+         else
+           return "#0e9401";//verde
+       }
+    });
+
+    if(decendio==1){
+      svg.selectAll("rect")
+          .data(csv)
+          .on("mouseover", function(d){var text = "latitude:" + d.latitude + " " + "longitude:" + d.longitude + " " + "etretm:" + d.dec1; tooltip.text(text); return tooltip.style("visibility", "visible");})
+          .on("mousemove", function(){return tooltip.style("top", (d3.event.pageY-10)+"px").style("left",(d3.event.pageX+10)+"px");})
+          .on("mouseout", function(){return tooltip.style("visibility", "hidden")});
+    } else if(decendio==2) {
+      svg.selectAll("rect")
+          .data(csv)
+          .on("mouseover", function(d){var text = "latitude:" + d.latitude + " " + "longitude:" + d.longitude + " " + "etretm:" + d.dec2; tooltip.text(text); return tooltip.style("visibility", "visible");})
+          .on("mousemove", function(){return tooltip.style("top", (d3.event.pageY-10)+"px").style("left",(d3.event.pageX+10)+"px");})
+          .on("mouseout", function(){return tooltip.style("visibility", "hidden")});
+    } else if(decendio==3) {
+      svg.selectAll("rect")
+          .data(csv)
+          .on("mouseover", function(d){var text = "latitude:" + d.latitude + " " + "longitude:" + d.longitude + " " + "etretm:" + d.dec3; tooltip.text(text); return tooltip.style("visibility", "visible");})
+          .on("mousemove", function(){return tooltip.style("top", (d3.event.pageY-10)+"px").style("left",(d3.event.pageX+10)+"px");})
+          .on("mouseout", function(){return tooltip.style("visibility", "hidden")});
+    }
+
+    d3.json("BRA_adm1.json", function(json) {
+                    svg.selectAll("path")
+                       .data(json.features)
+                       .enter()
+                       .append("path")
+                       .attr("d", path)
+                       .style("stroke",function (d) {
+                          if(d.properties.HASC_1 == "{{ estado }}"){
+                              return "black";
+                            }
+                          else
+                              return "none";
+                          })
+                      .style("fill", "none");
+    });
+
+  });
+}
+
+    </script>
+    <form name="myForm">
+    <label>Decêndio:</label> <select name="decendio" id="decendio" onchange="carrega_decendio(this.value)"></select>
+  </form>
+  </body>
+</html>

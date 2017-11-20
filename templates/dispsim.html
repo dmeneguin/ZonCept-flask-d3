@@ -1,0 +1,203 @@
+<!doctype html>
+<html>
+<head>
+<style>
+body {background-color: powderblue;}
+
+form {
+    color: blue;
+    border: 1px solid blue;
+    width: 80%;
+    margin: 0 auto;
+}
+
+label, input {
+    /* in order to define widths */
+    display: inline-block;
+}
+
+label {
+    width: 30%;
+    /* positions the label text beside the input */
+    text-align: left;
+}
+
+</style>
+<script>
+var tiposolo = [1,2,3];
+var cultura_list = '{{ tuplas_culturas }}';
+var estado_list = '{{ tuplas_estados }}'
+var cult_sel;
+var confreg_sel;
+var grupo_sel;
+
+window.onload = function(e) {
+  carrega_culturas()
+  carrega_estados()
+  popula_cbox(tiposolo,"solo")
+}
+
+function validateForm() {
+    //var x = document.forms["myForm"]["fname"].value;
+    //if (x == "") {
+    //    alert("Name must be filled out");
+    //    return false;
+    //}
+ }
+
+function limpa_cbox(elemento) {
+  var select = document.forms["myForm"][elemento];
+  select.options.length = 0;
+}
+
+function popula_cbox(arr,elemento) {
+  for(tupla in arr) {
+    var opt = document.createElement("option");
+    opt.value = arr[tupla];
+    opt.innerHTML = arr[tupla];
+    selectculturas = document.forms["myForm"][elemento];
+    selectculturas.appendChild(opt);
+  }
+}
+
+function retorna_arr_unico_confreg(arr) {
+  var arr_unico = [];
+  var unico = 1;
+  for (tupla in arr) {
+    unico = 1
+    for (tupla2 in arr_unico) {
+      if(arr[tupla].localeCompare(arr_unico[tupla2])==0) {
+        unico = 0;
+      }
+    }
+    if(unico == 1) {
+      arr_unico.push(arr[tupla]);
+    }
+  }
+  return arr_unico;
+}
+
+function retorna_arr_unico_cultura(arr) {
+  var arr_unico = [];
+  var unico = 1;
+  for (tupla in arr) {
+    unico = 1
+    for (tupla2 in arr_unico) {
+      if(arr[tupla].nome.localeCompare(arr_unico[tupla2])==0) {
+        unico = 0;
+      }
+    }
+    if(unico == 1) {
+      arr_unico.push(arr[tupla].nome);
+    }
+  }
+  return arr_unico;
+}
+
+function carrega_culturas() {
+    var arr = [];
+    cultura_list = cultura_list.split(";;");
+    cultura_list.splice(-1,1)
+
+    for(tupla in cultura_list) {
+      var array = cultura_list[tupla].split(",,")
+      arr.push({
+        nome: array[0],
+        configuracao: array[1],
+        configuracaoid: array[2],
+        grupo: array[3],
+        grupoid: array[4]
+                })
+    }
+    cultura_list = arr
+    //algodao = arr.filter(function(element){ return !element.nome.localeCompare("Algodão");; })
+    cult = retorna_arr_unico_cultura(cultura_list);
+    popula_cbox(cult,"culturas");
+  }
+
+  function carrega_estados() {
+    var arr = [];
+    estado_list = estado_list.split(",");
+    estado_list.splice(-1,1);
+    popula_cbox(estado_list,"estados");
+  }
+
+  function carrega_confreg(cultura) {
+    var arr = [];
+    cultura_sel = cultura;
+    limpa_cbox("confreg")
+    for( i=0; i<cultura_list.length; i++ )
+    {
+      //console.log(cultura_list[i].nome)
+      if(cultura_list[i].nome.localeCompare(cultura)==0)
+      {
+        arr.push(cultura_list[i].configuracao)
+      }
+    }
+    //console.log(arr)
+    arr = retorna_arr_unico_confreg(arr);
+    //console.log(arr.length);
+    popula_cbox(arr,"confreg");
+    //limpa_cbox("confreg")
+  }
+
+  function carrega_grupo(confreg) {
+    var arr = [];
+    confreg_sel = confreg;
+    limpa_cbox("grupo")
+    for( i=0; i<cultura_list.length; i++ )
+    {
+      //console.log(cultura_list[i].nome)
+      if(cultura_list[i].nome.localeCompare(cultura_sel)==0 && cultura_list[i].configuracao.localeCompare(confreg_sel)==0)
+      {
+        arr.push(cultura_list[i].grupo)
+      }
+    }
+    //console.log(arr)
+    arr = retorna_arr_unico_confreg(arr);
+    //console.log(arr.length);
+    popula_cbox(arr,"grupo");
+    //limpa_cbox("confreg")
+  }
+
+  function carrega_var_grupo(grupo) {
+    grupo_sel = grupo;
+  }
+</script>
+</head>
+<body>
+
+ <form name="myForm" onsubmit="return validateForm()" method="post">
+<label>Estado:</label> <select name="estados" id="estados"></select>
+<br>
+<label>Início da Simulação:</label> <input type="text" name="datainisim">
+<br>
+<label>Data do plantio:</label> <input type="text" name="dataplantio">
+<br>
+<label>Anos dos dados históricos:</label> <input type="text" name="anos">
+<br>
+<label>Tipos de solo:</label> <select name="solo" id="solo"></select>
+<br>
+<label>Cultura:</label> <select name="culturas" id="culturas" onchange="carrega_confreg(this.value)"></select>
+<br>
+<label>Configuração Regional:</label> <select name="confreg" id="confreg" onchange="carrega_grupo(this.value)"></select>
+<br>
+<label>Grupo:</label> <select name="grupo" id="grupo" onchange="carrega_var_grupo(this.value)"></select>
+<br>
+<label>Estoque Inicial:</label> <input type="number" step="any" name="estoqueini">
+<br>
+<label>Chuva limite:</label> <input type="number" step="any" name="chuvalimite">
+<br>
+<label>Mulch:</label> <input type="number" step="any" name="mulch">
+<br>
+<label>RUSURF:</label> <input type="number" step="any" name="rusurf">
+<br>
+<label>Reserva Útil:</label> <input type="number" step="any" name="reservautil">
+<br>
+<label>Escoamento Superficial:</label> <input type="number" step="any" name="escoamentosup">
+
+<input type="submit" value="Submit">
+</form>
+
+</body>
+</html>

@@ -1,0 +1,195 @@
+<!doctype html>
+<html>
+<head>
+<style>
+body {background-color: powderblue;}
+
+form {
+    color: blue;
+    border: 1px solid blue;
+    width: 80%;
+    margin: 0 auto;
+}
+
+label, input {
+    /* in order to define widths */
+    display: inline-block;
+}
+
+label {
+    width: 30%;
+    /* positions the label text beside the input */
+    text-align: left;
+}
+
+</style>
+<script>
+var data_list = '{{ data_paths }}';
+var cult_sel;
+var estado_sel;
+var dadomet_sel;
+var data_sel;
+
+window.onload = function(e) {
+  var arr = ["Download","Mapa"];
+  var interpolacao = ["Sem interpolação","idw","krig"]
+  carrega_culturas()
+  popula_cbox(arr,"opcao");
+  popula_cbox(interpolacao,"interp");
+  //carrega_estados("Milho")
+}
+
+function validateForm() {
+    //var x = document.forms["myForm"]["fname"].value;
+    //if (x == "") {
+    //    alert("Name must be filled out");
+    //    return false;
+    //}
+ }
+
+function limpa_cbox(elemento) {
+  var select = document.forms["myForm"][elemento];
+  select.options.length = 0;
+}
+
+function popula_cbox(arr,elemento) {
+  for(tupla in arr) {
+    var opt = document.createElement("option");
+    opt.value = arr[tupla];
+    opt.innerHTML = arr[tupla];
+    selectculturas = document.forms["myForm"][elemento];
+    selectculturas.appendChild(opt);
+  }
+}
+
+function retorna_arr_unico_estado(arr) {
+  var arr_unico = [];
+  var unico = 1;
+  for (tupla in arr) {
+    unico = 1
+    for (tupla2 in arr_unico) {
+      if(arr[tupla].localeCompare(arr_unico[tupla2])==0) {
+        unico = 0;
+      }
+    }
+    if(unico == 1) {
+      arr_unico.push(arr[tupla]);
+    }
+  }
+  return arr_unico;
+}
+
+function retorna_arr_unico_cultura(arr) {
+  var arr_unico = [];
+  var unico = 1;
+  for (tupla in arr) {
+    unico = 1
+    for (tupla2 in arr_unico) {
+      if(arr[tupla].nome.localeCompare(arr_unico[tupla2])==0) {
+        unico = 0;
+      }
+    }
+    if(unico == 1) {
+      arr_unico.push(arr[tupla].nome);
+    }
+  }
+  return arr_unico;
+}
+
+function carrega_culturas() {
+    var arr = [];
+    data_list = data_list.split(";;");
+    data_list.splice(-1,1)
+
+    for(tupla in data_list) {
+      var array = data_list[tupla].split(",,")
+      arr.push({
+        nome: array[0],
+        estado: array[1],
+        dado: array[2],
+        data: array[3]
+                })
+    }
+    data_list = arr
+    //algodao = arr.filter(function(element){ return !element.nome.localeCompare("Algodão");; })
+    cult = retorna_arr_unico_cultura(data_list);
+    popula_cbox(cult,"culturas");
+  }
+
+  function carrega_estados(cultura) {
+    var arr = [];
+    cultura_sel = cultura;
+    limpa_cbox("estados")
+    for( i=0; i<data_list.length; i++ )
+    {
+      //console.log(cultura_list[i].nome)
+      if(data_list[i].nome.localeCompare(cultura)==0)
+      {
+        arr.push(data_list[i].estado)
+      }
+    }
+    arr = retorna_arr_unico_estado(arr);
+    //console.log(arr.length);
+    popula_cbox(arr,"estados");
+  }
+
+  function carrega_dados(estado) {
+    var arr = [];
+    estado_sel = estado;
+    limpa_cbox("dados")
+    for( i=0; i<data_list.length; i++ )
+    {
+      //console.log(cultura_list[i].nome)
+      if(data_list[i].nome.localeCompare(cultura_sel)==0 && data_list[i].estado.localeCompare(estado_sel)==0)
+      {
+        arr.push(data_list[i].dado)
+      }
+    }
+    //console.log(arr)
+    arr = retorna_arr_unico_estado(arr);
+    //console.log(arr);
+    popula_cbox(arr,"dados");
+    //limpa_cbox("confreg")
+  }
+
+  function carrega_inisim(dados) {
+    var arr = [];
+    dadomet_sel = dados;
+    limpa_cbox("inisim")
+    for( i=0; i<data_list.length; i++ )
+    {
+      //console.log(cultura_list[i].nome)
+      if(data_list[i].nome.localeCompare(cultura_sel)==0 && data_list[i].estado.localeCompare(estado_sel)==0 && data_list[i].dado.localeCompare(dadomet_sel)==0)
+      {
+        arr.push(data_list[i].data)
+      }
+    }
+    //console.log(arr)
+    arr = retorna_arr_unico_estado(arr);
+    //console.log(arr);
+    popula_cbox(arr,"inisim");
+    //limpa_cbox("confreg")
+  }
+</script>
+</head>
+<body>
+
+ <form name="myForm" onsubmit="return validateForm()" method="post">
+<label>Cultura:</label> <select name="culturas" id="culturas" onclick="carrega_estados(this.value)" ></select>
+<br>
+<label>Estado:</label> <select name="estados" id="estados" onclick="carrega_dados(this.value)"></select>
+<br>
+<label>Dados:</label> <select name="dados" id="dados" onclick="carrega_inisim(this.value)"></select>
+<br>
+<label>Inicio do plantio:</label> <select name="inisim" id="inisim"></select>
+<br>
+<label>interpolação:</label> <select name="interp" id="interp"></select>
+<br>
+<label>Opção:</label> <select name="opcao" id="opcao"></select>
+<br>
+
+<input type="submit" value="Submit">
+</form>
+
+</body>
+</html>
